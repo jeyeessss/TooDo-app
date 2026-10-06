@@ -319,6 +319,18 @@ li.expanded .task-details {
     opacity: 0.7;
 }
 
+@media (max-width: 480px) {
+    .task-details-editor {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .save-details-btn {
+        grid-column: 1;
+        justify-self: stretch;
+        min-height: 40px;
+    }
+}
+
 /* Main task row layout */
 #task-list li {
     flex-direction: column;
