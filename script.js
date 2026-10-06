@@ -11,10 +11,12 @@ const taskProgress = document.getElementById('task-progress');
 const taskProgressFill = document.getElementById('task-progress-fill');
 const taskProgressLabel = document.getElementById('task-progress-label');
 const naturalDatePreview = document.getElementById('natural-date-preview');
+const syncStatus = document.getElementById('sync-status');
 
 let currentTasksData = [];
 let isSortedByPriority = false;
 let countdownInterval = null;
+let fetchTasksPromise = null;
 const reminderLeadTimeMs = 24 * 60 * 60 * 1000;
 const dueReminderGracePeriodMs = 5 * 60 * 1000;
 const sentReminderKeys = new Set();
@@ -50,19 +52,54 @@ if (themeToggleBtn) {
 
 // 1. Fetch tasks
 async function fetchTasks() {
-    const { data, error } = await supabaseClient
-        .from('tasks')
-        .select('*')
-        .is('deleted_at', null)
-        .order('created_at', { ascending: false });
-
-    if (error) {
-        console.error('Error fetching tasks:', error);
-        return;
-    }
-    currentTasksData = data || [];
+    currentTasksData = todoTaskStore.getTasks().filter(task => !task.deleted_at && !task._pendingDeleteForever);
     renderTasks(currentTasksData);
     checkDueDateReminders();
+
+    if (!navigator.onLine) {
+        updateSyncStatus();
+        return;
+    }
+    if (fetchTasksPromise) return fetchTasksPromise;
+
+    fetchTasksPromise = (async () => {
+        updateSyncStatus(null, true);
+        const syncResult = await todoTaskStore.syncPending(supabaseClient);
+        try {
+            const allTasks = await todoTaskStore.fetchRemote(supabaseClient);
+            currentTasksData = allTasks.filter(task => !task.deleted_at && !task._pendingDeleteForever);
+            renderTasks(currentTasksData);
+            checkDueDateReminders();
+            updateSyncStatus(syncResult.error);
+        } catch (error) {
+            console.error('Could not refresh tasks from Supabase:', error);
+            currentTasksData = todoTaskStore.getTasks().filter(task => !task.deleted_at && !task._pendingDeleteForever);
+            renderTasks(currentTasksData);
+            updateSyncStatus(syncResult.error || error);
+        }
+    })().finally(() => {
+        fetchTasksPromise = null;
+    });
+
+    return fetchTasksPromise;
+}
+
+function updateSyncStatus(error = null, syncing = false) {
+    if (!syncStatus) return;
+    if (!todoTaskStore.isStorageAvailable()) {
+        syncStatus.textContent = 'Local storage unavailable';
+    } else if (!navigator.onLine) {
+        syncStatus.textContent = 'Offline · changes saved on this device';
+    } else if (syncing) {
+        syncStatus.textContent = 'Syncing…';
+    } else if (error) {
+        syncStatus.textContent = 'Saved on this device · sync will retry';
+    } else {
+        const pendingCount = todoTaskStore.pendingCount();
+        syncStatus.textContent = pendingCount
+            ? `${pendingCount} change${pendingCount === 1 ? '' : 's'} waiting to sync`
+            : 'Synced';
+    }
 }
 
 function hasSentReminder(key) {
@@ -238,25 +275,23 @@ async function addTask() {
 
     if (!taskText) return;
 
-    const { error } = await supabaseClient
-        .from('tasks')
-        .insert([{ 
-            task: taskText, 
+    const newTask = todoTaskStore.addTask({
+            task: taskText,
             is_completed: false, 
             priority: priorityValue,
             started_at: startedAtValue,
-            due_date: dueDateValue
-        }]);
-
-    if (error) {
-        console.error('Error adding task:', error);
-    } else {
-        taskInput.value = '';
-        dueDateInput.value = '';
-        naturalDatePreview.hidden = true;
-        lastNaturalDateValue = '';
-        await fetchTasks();
-    }
+            due_date: dueDateValue,
+            finished_at: null,
+            deleted_at: null
+        });
+    currentTasksData = [newTask, ...currentTasksData];
+    renderTasks(currentTasksData);
+    taskInput.value = '';
+    dueDateInput.value = '';
+    naturalDatePreview.hidden = true;
+    lastNaturalDateValue = '';
+    updateSyncStatus();
+    if (navigator.onLine) fetchTasks();
 }
 
 // 3. Toggle completion
@@ -272,44 +307,23 @@ async function toggleTask(event, id, currentStatus) {
     currentTasksData = currentTasksData.map(task => task.id === id
         ? { ...task, is_completed: newStatus, finished_at: finishedAtValue }
         : task);
+    const updatedTask = currentTasksData.find(task => String(task.id) === String(id));
+    if (updatedTask) todoTaskStore.updateTask(updatedTask);
     renderTasks(currentTasksData);
-
-    const { error } = await supabaseClient
-        .from('tasks')
-        .update({ 
-            is_completed: newStatus,
-            finished_at: finishedAtValue
-        })
-        .eq('id', id);
-
-    if (error) {
-        console.error('Error updating task:', error);
-        currentTasksData = currentTasksData.map(task => task.id === id
-            ? { ...task, is_completed: previousStatus, finished_at: previousFinishedAt }
-            : task);
-        renderTasks(currentTasksData);
-        window.alert(`Could not save this task update: ${error.message || error.code || 'Unknown Supabase error'}`);
-    }
+    updateSyncStatus();
+    if (navigator.onLine) fetchTasks();
 }
 
 // 4. Move task to recently deleted
 async function deleteTask(event, id) {
     event.stopPropagation();
-    const previousTasks = currentTasksData;
+    const task = currentTasksData.find(candidate => String(candidate.id) === String(id));
+    if (!task) return;
+    todoTaskStore.updateTask({ ...task, deleted_at: new Date().toISOString() });
     currentTasksData = currentTasksData.filter(task => task.id !== id);
     renderTasks(currentTasksData);
-
-    const { error } = await supabaseClient
-        .from('tasks')
-        .update({ deleted_at: new Date().toISOString() })
-        .eq('id', id);
-
-    if (error) {
-        console.error('Error moving task to recently deleted:', error);
-        currentTasksData = previousTasks;
-        renderTasks(currentTasksData);
-        window.alert(`Could not move this task to Recently Deleted: ${error.message || error.code || 'Unknown Supabase error'}`);
-    }
+    updateSyncStatus();
+    if (navigator.onLine) fetchTasks();
 }
 
 // Helper: Format ISO date nicely
@@ -476,27 +490,20 @@ function renderTasks(tasks) {
             const dueDateInput = li.querySelector('.edit-due-date');
             const dueDate = dueDateInput.value ? new Date(dueDateInput.value).toISOString() : null;
             const updatedPriority = li.querySelector('.edit-priority').value;
-            const { error } = await supabaseClient
-                .from('tasks')
-                .update({ task: updatedTaskTitle, due_date: dueDate, priority: updatedPriority })
-                .eq('id', item.id);
-
-            if (error) {
-                console.error('Error updating task details:', error);
-                saveDetailsBtn.disabled = false;
-                window.alert(`Could not save task details: ${error.message || error.code || 'Unknown Supabase error'}`);
-                return;
-            }
 
             currentTasksData = currentTasksData.map(task => task.id === item.id
                 ? { ...task, task: updatedTaskTitle, due_date: dueDate, priority: updatedPriority }
                 : task);
+            const updatedTask = currentTasksData.find(task => String(task.id) === String(item.id));
+            if (updatedTask) todoTaskStore.updateTask(updatedTask);
             renderTasks(currentTasksData);
             const updatedRow = Array.from(taskList.children).find(row => row.dataset.taskId === String(item.id));
             if (updatedRow) {
                 updatedRow.classList.add('expanded');
                 updatedRow.querySelector('.slide-toggle-btn').textContent = 'Hide Details';
             }
+            updateSyncStatus();
+            if (navigator.onLine) fetchTasks();
         });
 
         taskList.appendChild(li);
@@ -531,6 +538,18 @@ if (taskInput) {
         if (e.key === 'Enter') addTask();
     });
 }
+
+window.addEventListener('online', fetchTasks);
+window.addEventListener('offline', () => updateSyncStatus());
+window.addEventListener('storage', event => {
+    if (event.key === 'todo-task-cache-v1') fetchTasks();
+});
+document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible' && navigator.onLine) fetchTasks();
+});
+setInterval(() => {
+    if (navigator.onLine) fetchTasks();
+}, 30000);
 
 // Real-time synchronization subscription
 supabaseClient

@@ -3,8 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#1c2226">
     <title>To-Do</title>
     <link rel="stylesheet" href="style.css">
+    <link rel="manifest" href="manifest.webmanifest">
     <!-- Supabase JS Client Library -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <!-- Favicon & iPhone Web App Icon -->
@@ -26,6 +28,7 @@
                         <span id="task-progress-fill" class="task-progress-fill"></span>
                     </div>
                 </section>
+                <p id="sync-status" class="sync-status" role="status" aria-live="polite">Loading saved tasks...</p>
                 <div id="notification-area" class="notification-area" aria-live="polite"></div>
 
         <div class="input-container" style="display: flex; flex-direction: column; gap: 8px;">
@@ -67,6 +70,7 @@
         window.chrono = chrono;
     </script>
     <script src="supabase-client.js"></script>
+    <script src="task-storage.js"></script>
     <script src="script.js"></script>
 </body>
 </html>

@@ -1,0 +1,17 @@
+{
+    "name": "To-Do Tasks",
+    "short_name": "To-Do",
+    "start_url": "./index.html",
+    "scope": "./",
+    "display": "standalone",
+    "background_color": "#121619",
+    "theme_color": "#1c2226",
+    "icons": [
+        {
+            "src": "./icon.png",
+            "sizes": "512x512",
+            "type": "image/png",
+            "purpose": "any maskable"
+        }
+    ]
+}

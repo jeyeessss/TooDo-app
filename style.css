@@ -81,6 +81,13 @@ h1 {
     transition: width 250ms ease;
 }
 
+.sync-status {
+    margin: -12px 0 14px;
+    color: #68757d;
+    font-size: 11px;
+    text-align: right;
+}
+
 #theme-toggle {
     grid-column: 3;
     justify-self: end;
@@ -579,6 +586,10 @@ li.expanded .task-details {
 
 .dark-mode #task-progress-label {
     color: #e1e7eb;
+}
+
+.dark-mode .sync-status {
+    color: #aebbc2;
 }
 
 .dark-mode .task-progress {

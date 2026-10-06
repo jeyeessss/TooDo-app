@@ -1,6 +1,22 @@
 const trashList = document.getElementById('trash-list');
 const trashStatus = document.getElementById('trash-status');
 const themeToggleBtn = document.getElementById('theme-toggle');
+const syncStatus = document.getElementById('sync-status');
+
+function updateSyncStatus(error = null) {
+    if (!todoTaskStore.isStorageAvailable()) {
+        syncStatus.textContent = 'Local storage unavailable';
+    } else if (!navigator.onLine) {
+        syncStatus.textContent = 'Offline · changes saved on this device';
+    } else if (error) {
+        syncStatus.textContent = 'Saved on this device · sync will retry';
+    } else {
+        const pendingCount = todoTaskStore.pendingCount();
+        syncStatus.textContent = pendingCount
+            ? `${pendingCount} change${pendingCount === 1 ? '' : 's'} waiting to sync`
+            : 'Synced';
+    }
+}
 
 function updateThemeToggle() {
     const isDarkMode = document.documentElement.classList.contains('dark-mode');
@@ -42,18 +58,7 @@ function formatDate(value) {
 
 async function restoreTask(task, button) {
     button.disabled = true;
-    const { error } = await supabaseClient
-        .from('tasks')
-        .update({ deleted_at: null })
-        .eq('id', task.id);
-
-    if (error) {
-        console.error('Error restoring task:', error);
-        button.disabled = false;
-        window.alert(`Could not restore this task: ${error.message || error.code || 'Unknown Supabase error'}`);
-        return;
-    }
-
+    todoTaskStore.updateTask({ ...task, deleted_at: null });
     window.location.href = 'index.html';
 }
 
@@ -62,43 +67,22 @@ async function permanentlyDeleteTask(task, button) {
     if (!confirmed) return;
 
     button.disabled = true;
-    const { error } = await supabaseClient
-        .from('tasks')
-        .delete()
-        .eq('id', task.id)
-        .not('deleted_at', 'is', null);
-
-    if (error) {
-        console.error('Error permanently deleting task:', error);
-        button.disabled = false;
-        window.alert(`Could not permanently delete this task: ${error.message || error.code || 'Unknown Supabase error'}`);
-        return;
-    }
-
-    await fetchDeletedTasks();
+    todoTaskStore.permanentlyDeleteTask(task);
+    renderDeletedTasks(todoTaskStore.getTasks().filter(item => item.deleted_at));
+    updateSyncStatus();
+    if (navigator.onLine) fetchDeletedTasks();
 }
 
-async function fetchDeletedTasks() {
-    const { data, error } = await supabaseClient
-        .from('tasks')
-        .select('*')
-        .not('deleted_at', 'is', null)
-        .order('deleted_at', { ascending: false });
-
-    if (error) {
-        console.error('Error fetching recently deleted tasks:', error);
-        trashStatus.textContent = `Could not load deleted tasks: ${error.message || error.code || 'Unknown Supabase error'}`;
-        return;
-    }
-
+function renderDeletedTasks(tasks) {
     trashList.replaceChildren();
-    if (!data || data.length === 0) {
+    if (tasks.length === 0) {
         trashStatus.textContent = 'No recently deleted tasks.';
         return;
     }
 
     trashStatus.textContent = '';
-    data.forEach(task => {
+    tasks.sort((first, second) => new Date(second.deleted_at) - new Date(first.deleted_at));
+    tasks.forEach(task => {
         const item = document.createElement('li');
         item.className = 'trash-item';
 
@@ -110,7 +94,7 @@ async function fetchDeletedTasks() {
         title.textContent = task.task;
 
         const metadata = document.createElement('span');
-        metadata.textContent = `Deleted ${formatDate(task.deleted_at)} · Due ${formatDate(task.due_date)} · ${task.priority || 'medium'} priority`;
+        metadata.textContent = `${task._pendingDeleteForever ? 'Delete pending sync · ' : `Deleted ${formatDate(task.deleted_at)} · `}Due ${formatDate(task.due_date)} · ${task.priority || 'medium'} priority`;
 
         details.append(title, metadata);
 
@@ -118,6 +102,7 @@ async function fetchDeletedTasks() {
         restoreButton.className = 'restore-task-btn';
         restoreButton.type = 'button';
         restoreButton.textContent = 'Restore';
+        restoreButton.disabled = Boolean(task._pendingDeleteForever);
         restoreButton.addEventListener('click', () => restoreTask(task, restoreButton));
 
         const actions = document.createElement('div');
@@ -127,7 +112,8 @@ async function fetchDeletedTasks() {
         const deleteForeverButton = document.createElement('button');
         deleteForeverButton.className = 'delete-forever-btn';
         deleteForeverButton.type = 'button';
-        deleteForeverButton.textContent = 'Delete forever';
+        deleteForeverButton.textContent = task._pendingDeleteForever ? 'Deleting...' : 'Delete forever';
+        deleteForeverButton.disabled = Boolean(task._pendingDeleteForever);
         deleteForeverButton.addEventListener('click', () => permanentlyDeleteTask(task, deleteForeverButton));
         actions.appendChild(deleteForeverButton);
 
@@ -135,5 +121,32 @@ async function fetchDeletedTasks() {
         trashList.appendChild(item);
     });
 }
+
+async function fetchDeletedTasks() {
+    renderDeletedTasks(todoTaskStore.getTasks().filter(task => task.deleted_at));
+    if (!navigator.onLine) {
+        updateSyncStatus();
+        return;
+    }
+
+    const syncResult = await todoTaskStore.syncPending(supabaseClient);
+    try {
+        const tasks = await todoTaskStore.fetchRemote(supabaseClient);
+        renderDeletedTasks(tasks.filter(task => task.deleted_at));
+        updateSyncStatus(syncResult.error);
+    } catch (error) {
+        console.error('Could not refresh Recently Deleted from Supabase:', error);
+        updateSyncStatus(syncResult.error || error);
+    }
+}
+
+window.addEventListener('online', fetchDeletedTasks);
+window.addEventListener('offline', () => updateSyncStatus());
+window.addEventListener('storage', event => {
+    if (event.key === 'todo-task-cache-v1') fetchDeletedTasks();
+});
+document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible' && navigator.onLine) fetchDeletedTasks();
+});
 
 fetchDeletedTasks();
