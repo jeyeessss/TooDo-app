@@ -57,6 +57,27 @@ async function restoreTask(task, button) {
     window.location.href = 'index.html';
 }
 
+async function permanentlyDeleteTask(task, button) {
+    const confirmed = window.confirm(`Permanently delete "${task.task}"? This cannot be undone.`);
+    if (!confirmed) return;
+
+    button.disabled = true;
+    const { error } = await supabaseClient
+        .from('tasks')
+        .delete()
+        .eq('id', task.id)
+        .not('deleted_at', 'is', null);
+
+    if (error) {
+        console.error('Error permanently deleting task:', error);
+        button.disabled = false;
+        window.alert(`Could not permanently delete this task: ${error.message || error.code || 'Unknown Supabase error'}`);
+        return;
+    }
+
+    await fetchDeletedTasks();
+}
+
 async function fetchDeletedTasks() {
     const { data, error } = await supabaseClient
         .from('tasks')
@@ -99,7 +120,18 @@ async function fetchDeletedTasks() {
         restoreButton.textContent = 'Restore';
         restoreButton.addEventListener('click', () => restoreTask(task, restoreButton));
 
-        item.append(details, restoreButton);
+        const actions = document.createElement('div');
+        actions.className = 'trash-item-actions';
+        actions.appendChild(restoreButton);
+
+        const deleteForeverButton = document.createElement('button');
+        deleteForeverButton.className = 'delete-forever-btn';
+        deleteForeverButton.type = 'button';
+        deleteForeverButton.textContent = 'Delete forever';
+        deleteForeverButton.addEventListener('click', () => permanentlyDeleteTask(task, deleteForeverButton));
+        actions.appendChild(deleteForeverButton);
+
+        item.append(details, actions);
         trashList.appendChild(item);
     });
 }

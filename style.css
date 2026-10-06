@@ -237,7 +237,27 @@ h1 {
     font-weight: 600;
 }
 
-.restore-task-btn:disabled {
+.trash-item-actions {
+    display: flex;
+    flex: 0 0 auto;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.delete-forever-btn {
+    flex: 0 0 auto;
+    padding: 8px 12px;
+    border: 1px solid #e3b5b5;
+    border-radius: 5px;
+    background: #fff;
+    color: #b4232d;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.restore-task-btn:disabled,
+.delete-forever-btn:disabled {
     cursor: wait;
     opacity: 0.7;
 }
@@ -416,6 +436,15 @@ li.expanded .task-details {
         min-height: 40px;
     }
 
+    .trash-item-actions {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .trash-item-actions button {
+        min-height: 40px;
+    }
+
     .task-details-editor {
         grid-template-columns: minmax(0, 1fr);
     }
@@ -549,6 +578,12 @@ li.expanded .task-details {
 .dark-mode .trash-item {
     border-color: #343e44;
     background: #232b30;
+}
+
+.dark-mode .delete-forever-btn {
+    border-color: #754148;
+    background: #3b272b;
+    color: #ff9da4;
 }
 
 .dark-mode .task-details-editor input,
