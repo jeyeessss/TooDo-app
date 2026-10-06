@@ -305,6 +305,15 @@ li.expanded .task-details {
     box-sizing: border-box;
 }
 
+.task-details-editor input[type="datetime-local"] {
+    display: block;
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+    -webkit-appearance: none;
+    appearance: none;
+}
+
 .save-details-btn {
     grid-column: 2;
     justify-self: end;
