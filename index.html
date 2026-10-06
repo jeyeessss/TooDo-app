@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>To-Do</title>
+    <link rel="stylesheet" href="style.css">
+    <!-- Supabase JS Client Library -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <!-- Favicon & iPhone Web App Icon -->
+     <link rel="icon" type="image/png" href="icon.png">
+<link rel="apple-touch-icon" href="icon.png">
+</head>
+<body>
+     <div class="app-container">
+                <header class="app-header">
+                        <h1>My Tasks</h1>
+                        <button id="theme-toggle" type="button" aria-label="Switch to dark mode" title="Switch to dark mode">&#9790;</button>
+                </header>
+                <div id="notification-area" class="notification-area" aria-live="polite"></div>
+
+        <div class="input-container" style="display: flex; flex-direction: column; gap: 8px;">
+            <input type="text" id="task-input" placeholder="What needs to be done?">
+            
+            <!-- Controls Row for Priority, Date, and Add Button -->
+            <div class="task-options-row">
+                <div class="task-option">
+                    <label for="priority-select">Select Priority:</label>
+                    <select id="priority-select">
+                        <option value="low">Low</option>
+                        <option value="medium" selected>Medium</option>
+                        <option value="high">High</option>
+                    </select>
+                </div>
+
+                <div class="task-option">
+                    <label for="due-date-input">Select Due Date:</label>
+                    <input type="datetime-local" id="due-date-input">
+                </div>
+            </div>
+            <button id="add-btn">Add</button>
+        </div>
+
+        <div class="task-toolbar">
+            <button id="enable-notifications-btn" type="button">Enable notifications</button>
+            <button id="sort-priority-btn" style="padding: 6px 12px; background-color: #e67e22; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 13px;">Sort: High to Low </button>
+        </div>
+
+        <ul id="task-list">
+            <!--Task Items-->
+        </ul>
+     </div>
+
+     <script src="script.js"></script>
+</body>
+</html>
