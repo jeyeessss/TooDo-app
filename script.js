@@ -52,7 +52,7 @@ if (themeToggleBtn) {
 
 // 1. Fetch tasks
 async function fetchTasks() {
-    currentTasksData = todoTaskStore.getTasks().filter(task => !task.deleted_at && !task._pendingDeleteForever);
+    currentTasksData = todoTaskStore.getTasks().filter(task => task.task_bucket === 'active' && !task.deleted_at && !task._pendingDeleteForever);
     renderTasks(currentTasksData);
     checkDueDateReminders();
 
@@ -67,13 +67,13 @@ async function fetchTasks() {
         const syncResult = await todoTaskStore.syncPending(supabaseClient);
         try {
             const allTasks = await todoTaskStore.fetchRemote(supabaseClient);
-            currentTasksData = allTasks.filter(task => !task.deleted_at && !task._pendingDeleteForever);
+            currentTasksData = allTasks.filter(task => task.task_bucket === 'active' && !task.deleted_at && !task._pendingDeleteForever);
             renderTasks(currentTasksData);
             checkDueDateReminders();
             updateSyncStatus(syncResult.error);
         } catch (error) {
             console.error('Could not refresh tasks from Supabase:', error);
-            currentTasksData = todoTaskStore.getTasks().filter(task => !task.deleted_at && !task._pendingDeleteForever);
+            currentTasksData = todoTaskStore.getTasks().filter(task => task.task_bucket === 'active' && !task.deleted_at && !task._pendingDeleteForever);
             renderTasks(currentTasksData);
             updateSyncStatus(syncResult.error || error);
         }
@@ -282,7 +282,8 @@ async function addTask() {
             started_at: startedAtValue,
             due_date: dueDateValue,
             finished_at: null,
-            deleted_at: null
+            deleted_at: null,
+            task_bucket: 'active'
         });
     currentTasksData = [newTask, ...currentTasksData];
     renderTasks(currentTasksData);

@@ -228,10 +228,169 @@ h1 {
     text-decoration: none;
 }
 
+.collection-container .app-header {
+    margin-bottom: 14px;
+}
+
+.collection-nav {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 4px;
+    margin-bottom: 12px;
+    padding: 4px;
+    border-radius: 6px;
+    background: #edf1f2;
+}
+
+.collection-nav a {
+    padding: 8px 4px;
+    border-radius: 4px;
+    color: #4b5860;
+    font-size: 12px;
+    font-weight: 600;
+    text-align: center;
+    text-decoration: none;
+}
+
+.collection-nav a[aria-current="page"] {
+    background: #fff;
+    color: #246b50;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+}
+
+.collection-form {
+    display: grid;
+    gap: 8px;
+    margin-bottom: 18px;
+}
+
+.collection-form label {
+    color: #59666e;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.collection-form textarea,
+.collection-edit-input {
+    width: 100%;
+    min-width: 0;
+    resize: vertical;
+    padding: 10px 12px;
+    border: 1px solid #cbd5dc;
+    border-radius: 6px;
+    background: #fff;
+    color: #333;
+    font: inherit;
+    line-height: 1.45;
+}
+
+#collection-submit,
+.collection-primary-btn,
+.collection-secondary-btn,
+.collection-delete-btn {
+    min-height: 38px;
+    padding: 7px 10px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+#collection-submit,
+.collection-primary-btn {
+    border: 0;
+    background: #2879a8;
+    color: #fff;
+}
+
+.collection-secondary-btn {
+    border: 1px solid #cbd5dc;
+    background: transparent;
+    color: #34424b;
+}
+
+.collection-delete-btn {
+    border: 1px solid #e3b5b5;
+    background: #fff;
+    color: #b4232d;
+}
+
+.collection-status {
+    margin-bottom: 8px;
+    color: #69767d;
+    font-size: 12px;
+}
+
+.collection-list {
+    display: grid;
+    gap: 8px;
+    list-style: none;
+}
+
+.collection-item {
+    display: grid;
+    gap: 8px;
+    padding: 12px;
+    border: 1px solid #e2e7ea;
+    border-radius: 6px;
+    background: #fafafa;
+}
+
+.collection-entry-text {
+    overflow-wrap: anywhere;
+    white-space: pre-wrap;
+}
+
+.collection-entry-date {
+    color: #69767d;
+    font-size: 11px;
+}
+
+.collection-edit summary {
+    width: fit-content;
+    color: #2879a8;
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.collection-edit-input {
+    margin-top: 8px;
+    font-size: 13px;
+}
+
+.collection-edit .collection-secondary-btn {
+    margin-top: 8px;
+}
+
+.collection-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
 .trash-link {
     padding: 6px 10px;
     border: 1px solid #cbd5dc;
     border-radius: 6px;
+}
+
+.brain-dump-link {
+    border-color: #bddac7;
+    background: #e7f3eb;
+    color: #286344;
+}
+
+.someday-link {
+    border-color: #e8d29a;
+    background: #fff4d6;
+    color: #825b12;
+}
+
+.recently-deleted-link {
+    border-color: #e3b5b5;
+    background: #fbe9e9;
+    color: #a52b32;
 }
 
 .back-to-tasks {
@@ -494,6 +653,14 @@ li.expanded .task-details {
 }
 
 @media (max-width: 480px) {
+    .collection-nav a {
+        font-size: 11px;
+    }
+
+    .collection-actions button {
+        flex: 1 1 auto;
+    }
+
     .trash-item {
         align-items: stretch;
         flex-direction: column;
@@ -655,6 +822,70 @@ li.expanded .task-details {
 .dark-mode .trash-link {
     border-color: #48545c;
     color: #83c5e8;
+}
+
+.dark-mode .brain-dump-link {
+    border-color: #42694e;
+    background: #263c2d;
+    color: #b6e1c1;
+}
+
+.dark-mode .someday-link {
+    border-color: #715a32;
+    background: #3d3422;
+    color: #f0ce82;
+}
+
+.dark-mode .recently-deleted-link {
+    border-color: #754148;
+    background: #3b272b;
+    color: #ff9da4;
+}
+
+.dark-mode .collection-nav {
+    background: #242c31;
+}
+
+.dark-mode .collection-nav a {
+    color: #c0cbd1;
+}
+
+.dark-mode .collection-nav a[aria-current="page"] {
+    background: #354047;
+    color: #9de0ad;
+    box-shadow: none;
+}
+
+.dark-mode .collection-form label {
+    color: #c0cbd1;
+}
+
+.dark-mode .collection-form textarea,
+.dark-mode .collection-edit-input {
+    border-color: #48545c;
+    background: #242c31;
+    color: #edf2f5;
+}
+
+.dark-mode .collection-secondary-btn {
+    border-color: #48545c;
+    color: #d6e0e5;
+}
+
+.dark-mode .collection-delete-btn {
+    border-color: #754148;
+    background: #3b272b;
+    color: #ff9da4;
+}
+
+.dark-mode .collection-status,
+.dark-mode .collection-entry-date {
+    color: #aebbc2;
+}
+
+.dark-mode .collection-item {
+    border-color: #343e44;
+    background: #232b30;
 }
 
 .dark-mode .back-to-tasks {

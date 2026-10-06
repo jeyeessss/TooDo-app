@@ -4,9 +4,13 @@ const APP_ASSETS = [
     './',
     './index.html',
     './trash.html',
+    './collections.html',
+    './collections.html?view=inbox',
+    './collections.html?view=someday',
     './style.css',
     './script.js',
     './trash.js',
+    './collections.js',
     './task-storage.js',
     './supabase-client.js',
     './manifest.webmanifest',
@@ -39,7 +43,7 @@ self.addEventListener('activate', event => {
     event.waitUntil((async () => {
         const cacheNames = await caches.keys();
         await Promise.all(cacheNames
-            .filter(name => ![SHELL_CACHE, RUNTIME_CACHE].includes(name))
+            .filter(name => name.startsWith('todo-') && ![SHELL_CACHE, RUNTIME_CACHE].includes(name))
             .map(name => caches.delete(name)));
         await self.clients.claim();
     })());
@@ -58,8 +62,11 @@ self.addEventListener('fetch', event => {
             caches.open(SHELL_CACHE).then(cache => cache.put(request, responseCopy));
             return response;
         }).catch(async () => {
-            const cachedPage = await caches.match(request);
-            return cachedPage || caches.match('./index.html');
+            const fallbackPage = new URL(request.url).pathname.endsWith('/collections.html')
+                ? './collections.html'
+                : './index.html';
+            const cachedPage = await caches.match(request) || await caches.match(fallbackPage);
+            return cachedPage;
         }));
         return;
     }

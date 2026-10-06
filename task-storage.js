@@ -1,6 +1,6 @@
 (() => {
     const storageKey = 'todo-task-cache-v1';
-    const taskFields = ['task', 'is_completed', 'priority', 'started_at', 'due_date', 'finished_at', 'deleted_at'];
+    const taskFields = ['task', 'is_completed', 'priority', 'started_at', 'due_date', 'finished_at', 'deleted_at', 'task_bucket'];
     let syncPromise = null;
     let storageAvailable = true;
 
@@ -8,7 +8,9 @@
         try {
             const stored = localStorage.getItem(storageKey);
             const tasks = stored ? JSON.parse(stored) : [];
-            return Array.isArray(tasks) ? tasks : [];
+            return Array.isArray(tasks)
+                ? tasks.map(task => ({ ...task, task_bucket: task.task_bucket || 'active' }))
+                : [];
         } catch (error) {
             storageAvailable = false;
             console.error('Could not read the local task cache:', error);
@@ -34,11 +36,16 @@
     }
 
     function taskPayload(task) {
-        return Object.fromEntries(taskFields.map(field => [field, task[field] ?? null]));
+        return Object.fromEntries(taskFields.map(field => [
+            field,
+            field === 'task_bucket' ? task[field] || 'active' : task[field] ?? null
+        ]));
     }
 
     function samePayload(first, second) {
-        return taskFields.every(field => (first[field] ?? null) === (second[field] ?? null));
+        return taskFields.every(field => field === 'task_bucket'
+            ? (first[field] || 'active') === (second[field] || 'active')
+            : (first[field] ?? null) === (second[field] ?? null));
     }
 
     function replaceTask(id, replacement) {
@@ -82,6 +89,7 @@
     function addTask(task) {
         const createdTask = {
             ...task,
+            task_bucket: task.task_bucket || 'active',
             id: localId(),
             created_at: task.created_at || task.started_at,
             _localOnly: true,
@@ -196,7 +204,7 @@
     async function fetchRemote(client) {
         const { data, error } = await client.from('tasks').select('*').order('created_at', { ascending: false });
         if (error) throw error;
-        return mergeRemote(data || []);
+        return mergeRemote((data || []).map(task => ({ ...task, task_bucket: task.task_bucket || 'active' })));
     }
 
     window.todoTaskStore = {
