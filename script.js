@@ -7,6 +7,9 @@ const sortPriorityBtn = document.getElementById('sort-priority-btn');
 const enableNotificationsBtn = document.getElementById('enable-notifications-btn');
 const notificationArea = document.getElementById('notification-area');
 const themeToggleBtn = document.getElementById('theme-toggle');
+const taskProgress = document.getElementById('task-progress');
+const taskProgressFill = document.getElementById('task-progress-fill');
+const taskProgressLabel = document.getElementById('task-progress-label');
 
 let currentTasksData = [];
 let isSortedByPriority = false;
@@ -321,6 +324,12 @@ function getLiveRemainingTime(dueDateISO) {
 function renderTasks(tasks) {
     taskList.innerHTML = '';
     if (!tasks) return;
+
+    const completedCount = tasks.filter(task => task.is_completed).length;
+    const completionPercent = tasks.length === 0 ? 0 : Math.round((completedCount / tasks.length) * 100);
+    taskProgressLabel.textContent = `${completedCount} of ${tasks.length} tasks completed (${completionPercent}%)`;
+    taskProgress.setAttribute('aria-valuenow', completionPercent);
+    taskProgressFill.style.width = `${completionPercent}%`;
 
     let tasksToRender = [...tasks];
 

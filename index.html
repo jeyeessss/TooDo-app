@@ -17,6 +17,15 @@
                         <h1>My Tasks</h1>
                         <button id="theme-toggle" type="button" aria-label="Switch to dark mode" title="Switch to dark mode">&#9790;</button>
                 </header>
+                <section class="task-progress-section" aria-label="Task completion progress">
+                    <div class="task-progress-heading">
+                        <span>Task progress</span>
+                        <span id="task-progress-label">0 of 0 tasks completed (0%)</span>
+                    </div>
+                    <div id="task-progress" class="task-progress" role="progressbar" aria-label="Task completion" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+                        <span id="task-progress-fill" class="task-progress-fill"></span>
+                    </div>
+                </section>
                 <div id="notification-area" class="notification-area" aria-live="polite"></div>
 
         <div class="input-container" style="display: flex; flex-direction: column; gap: 8px;">
