@@ -278,12 +278,14 @@ li.expanded .task-details {
     align-items: end;
     gap: 8px;
     margin-top: 10px;
+    width: 100%;
 }
 
 .task-details-editor label {
     display: grid;
     gap: 4px;
     min-width: 0;
+    width: 100%;
     font-size: 11px;
     font-weight: 600;
 }
@@ -291,6 +293,7 @@ li.expanded .task-details {
 .task-details-editor input,
 .task-details-editor select {
     width: 100%;
+    max-width: 100%;
     min-width: 0;
     height: 34px;
     padding: 4px 6px;
@@ -299,6 +302,7 @@ li.expanded .task-details {
     background: #fff;
     color: #333;
     font: inherit;
+    box-sizing: border-box;
 }
 
 .save-details-btn {
