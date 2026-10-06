@@ -421,11 +421,13 @@ function renderTasks(tasks) {
                 </div>
             </div>
             <div class="task-details">
+                <div class="task-full-title"><strong>Task:</strong> <span class="task-full-title-text"></span></div>
                 <div><strong>Started:</strong> ${formatDate(item.started_at)}</div>
                 <div><strong>Due Date:</strong> ${formatDate(item.due_date)}</div>
                 ${!item.is_completed && item.due_date ? `<div class="live-countdown" data-due="${item.due_date}" style="color: #2980b9; font-weight: 500; margin-top: 2px;"><strong>Remaining:</strong> ${getLiveRemainingTime(item.due_date)}</div>` : ''}
                 ${item.is_completed ? `<div><strong>Finished:</strong> ${formatDate(item.finished_at)}</div>` : ''}
                 <div class="task-details-editor">
+                    <label class="edit-title-label">Task title<input class="edit-task-title" type="text" required></label>
                     <label>Due date and time<input class="edit-due-date" type="datetime-local" value="${toDateTimeLocalValue(item.due_date)}"></label>
                     <label>Priority<select class="edit-priority">
                         <option value="low" ${priority === 'low' ? 'selected' : ''}>Low</option>
@@ -436,6 +438,8 @@ function renderTasks(tasks) {
                 </div>
             </div>
         `;
+        li.querySelector('.task-full-title-text').textContent = item.task;
+        li.querySelector('.edit-task-title').value = item.task;
 
         // Toggle completion from the task row, leaving its controls independent.
         const mainRow = li.querySelector('.task-main-row');
@@ -463,12 +467,18 @@ function renderTasks(tasks) {
             e.stopPropagation();
             saveDetailsBtn.disabled = true;
 
+            const updatedTaskTitle = li.querySelector('.edit-task-title').value.trim();
+            if (!updatedTaskTitle) {
+                saveDetailsBtn.disabled = false;
+                window.alert('Task title cannot be empty.');
+                return;
+            }
             const dueDateInput = li.querySelector('.edit-due-date');
             const dueDate = dueDateInput.value ? new Date(dueDateInput.value).toISOString() : null;
             const updatedPriority = li.querySelector('.edit-priority').value;
             const { error } = await supabaseClient
                 .from('tasks')
-                .update({ due_date: dueDate, priority: updatedPriority })
+                .update({ task: updatedTaskTitle, due_date: dueDate, priority: updatedPriority })
                 .eq('id', item.id);
 
             if (error) {
@@ -479,7 +489,7 @@ function renderTasks(tasks) {
             }
 
             currentTasksData = currentTasksData.map(task => task.id === item.id
-                ? { ...task, due_date: dueDate, priority: updatedPriority }
+                ? { ...task, task: updatedTaskTitle, due_date: dueDate, priority: updatedPriority }
                 : task);
             renderTasks(currentTasksData);
             const updatedRow = Array.from(taskList.children).find(row => row.dataset.taskId === String(item.id));
