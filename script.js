@@ -247,6 +247,10 @@ async function toggleTask(event, id, currentStatus) {
 // 4. Delete task
 async function deleteTask(event, id) {
     event.stopPropagation();
+    const previousTasks = currentTasksData;
+    currentTasksData = currentTasksData.filter(task => task.id !== id);
+    renderTasks(currentTasksData);
+
     const { error } = await supabaseClient
         .from('tasks')
         .delete()
@@ -254,6 +258,9 @@ async function deleteTask(event, id) {
 
     if (error) {
         console.error('Error deleting task:', error);
+        currentTasksData = previousTasks;
+        renderTasks(currentTasksData);
+        window.alert(`Could not delete this task: ${error.message || error.code || 'Unknown Supabase error'}`);
     }
 }
 
