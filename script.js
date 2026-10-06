@@ -10,6 +10,7 @@ const themeToggleBtn = document.getElementById('theme-toggle');
 const taskProgress = document.getElementById('task-progress');
 const taskProgressFill = document.getElementById('task-progress-fill');
 const taskProgressLabel = document.getElementById('task-progress-label');
+const naturalDatePreview = document.getElementById('natural-date-preview');
 
 let currentTasksData = [];
 let isSortedByPriority = false;
@@ -181,11 +182,58 @@ if (enableNotificationsBtn) {
 
 setInterval(checkDueDateReminders, 60 * 1000);
 
+function parseNaturalTaskDate(text) {
+    if (!window.chrono || !text.trim()) return null;
+
+    const match = window.chrono.parse(text, new Date(), { forwardDate: true })[0];
+    if (!match) return null;
+
+    const date = match.start.date();
+    if (Number.isNaN(date.getTime())) return null;
+
+    const task = `${text.slice(0, match.index)} ${text.slice(match.index + match.text.length)}`
+        .replace(/\s+/g, ' ')
+        .replace(/^[,.;\s]+|[,.;\s]+$/g, '')
+        .trim();
+
+    return { date, task };
+}
+
+let lastNaturalDateValue = '';
+
+function updateNaturalDatePreview() {
+    const parsed = parseNaturalTaskDate(taskInput.value);
+    if (!parsed) {
+        naturalDatePreview.hidden = true;
+        if (lastNaturalDateValue && dueDateInput.value === lastNaturalDateValue) {
+            dueDateInput.value = '';
+        }
+        lastNaturalDateValue = '';
+        return;
+    }
+
+    const parsedDateISO = parsed.date.toISOString();
+    const parsedInputValue = toDateTimeLocalValue(parsedDateISO);
+    if (!dueDateInput.value || dueDateInput.value === lastNaturalDateValue) {
+        dueDateInput.value = parsedInputValue;
+        lastNaturalDateValue = parsedInputValue;
+    }
+
+    naturalDatePreview.textContent = `Due date detected: ${formatDate(parsedDateISO)}. This date will be used for reminders.`;
+    naturalDatePreview.hidden = false;
+}
+
+taskInput.addEventListener('input', updateNaturalDatePreview);
+
 // 2. Add task
 async function addTask() {
-    const taskText = taskInput.value.trim();
+    const rawTaskText = taskInput.value.trim();
+    const parsedNaturalDate = parseNaturalTaskDate(rawTaskText);
+    const taskText = parsedNaturalDate ? parsedNaturalDate.task : rawTaskText;
     const priorityValue = prioritySelect.value;
-    const dueDateValue = dueDateInput.value ? new Date(dueDateInput.value).toISOString() : null;
+    const dueDateValue = dueDateInput.value
+        ? new Date(dueDateInput.value).toISOString()
+        : parsedNaturalDate?.date.toISOString() || null;
     const startedAtValue = new Date().toISOString();
 
     if (!taskText) return;
@@ -205,6 +253,8 @@ async function addTask() {
     } else {
         taskInput.value = '';
         dueDateInput.value = '';
+        naturalDatePreview.hidden = true;
+        lastNaturalDateValue = '';
         await fetchTasks();
     }
 }
@@ -266,7 +316,7 @@ async function deleteTask(event, id) {
 function formatDate(isoString) {
     if (!isoString) return 'None';
     const date = new Date(isoString);
-    return date.toLocaleString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+    return date.toLocaleString([], { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' });
 }
 
 function toDateTimeLocalValue(isoString) {

@@ -102,6 +102,13 @@ h1 {
     margin-bottom: 20px;
 }
 
+.natural-date-preview {
+    margin-top: -2px;
+    color: #397651;
+    font-size: 12px;
+    line-height: 1.4;
+}
+
 .input-container input[type="text"],
 .input-container input[type="datetime-local"]{
     width: 100%;
@@ -575,6 +582,10 @@ li.expanded .task-details {
 
 .dark-mode .task-option label {
     color: #c0cbd1;
+}
+
+.dark-mode .natural-date-preview {
+    color: #91d2a7;
 }
 
 .dark-mode #task-input,

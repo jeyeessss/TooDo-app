@@ -30,6 +30,7 @@
 
         <div class="input-container" style="display: flex; flex-direction: column; gap: 8px;">
             <input type="text" id="task-input" placeholder="What needs to be done?">
+            <p id="natural-date-preview" class="natural-date-preview" aria-live="polite" hidden></p>
             
             <!-- Controls Row for Priority, Date, and Add Button -->
             <div class="task-options-row">
@@ -61,6 +62,10 @@
         </ul>
      </div>
 
+    <script type="module">
+        import * as chrono from 'https://cdn.jsdelivr.net/npm/chrono-node@2.8.0/+esm';
+        window.chrono = chrono;
+    </script>
     <script src="supabase-client.js"></script>
     <script src="script.js"></script>
 </body>
