@@ -271,6 +271,14 @@ function formatDate(isoString) {
     return date.toLocaleString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
 }
 
+function toDateTimeLocalValue(isoString) {
+    if (!isoString) return '';
+    const date = new Date(isoString);
+    if (Number.isNaN(date.getTime())) return '';
+    date.setMinutes(date.getMinutes() - date.getTimezoneOffset());
+    return date.toISOString().slice(0, 16);
+}
+
 // Helper: Calculate short badge countdown
 function getCountdownText(dueDateISO) {
     if (!dueDateISO) return '';
@@ -335,6 +343,7 @@ function renderTasks(tasks) {
 
     tasksToRender.forEach(item => {
         const li = document.createElement('li');
+        li.dataset.taskId = item.id;
         
         // Ensure completed class is applied if database says it's done
         if (item.is_completed) {
@@ -362,6 +371,15 @@ function renderTasks(tasks) {
                 <div><strong>Due Date:</strong> ${formatDate(item.due_date)}</div>
                 ${!item.is_completed && item.due_date ? `<div class="live-countdown" data-due="${item.due_date}" style="color: #2980b9; font-weight: 500; margin-top: 2px;"><strong>Remaining:</strong> ${getLiveRemainingTime(item.due_date)}</div>` : ''}
                 ${item.is_completed ? `<div><strong>Finished:</strong> ${formatDate(item.finished_at)}</div>` : ''}
+                <div class="task-details-editor">
+                    <label>Due date and time<input class="edit-due-date" type="datetime-local" value="${toDateTimeLocalValue(item.due_date)}"></label>
+                    <label>Priority<select class="edit-priority">
+                        <option value="low" ${priority === 'low' ? 'selected' : ''}>Low</option>
+                        <option value="medium" ${priority === 'medium' ? 'selected' : ''}>Medium</option>
+                        <option value="high" ${priority === 'high' ? 'selected' : ''}>High</option>
+                    </select></label>
+                    <button class="save-details-btn" type="button">Save details</button>
+                </div>
             </div>
         `;
 
@@ -384,6 +402,37 @@ function renderTasks(tasks) {
             e.stopPropagation();
             li.classList.toggle('expanded');
             slideBtn.textContent = li.classList.contains('expanded') ? 'Hide Details' : 'See Details';
+        });
+
+        const saveDetailsBtn = li.querySelector('.save-details-btn');
+        saveDetailsBtn.addEventListener('click', async (e) => {
+            e.stopPropagation();
+            saveDetailsBtn.disabled = true;
+
+            const dueDateInput = li.querySelector('.edit-due-date');
+            const dueDate = dueDateInput.value ? new Date(dueDateInput.value).toISOString() : null;
+            const updatedPriority = li.querySelector('.edit-priority').value;
+            const { error } = await supabaseClient
+                .from('tasks')
+                .update({ due_date: dueDate, priority: updatedPriority })
+                .eq('id', item.id);
+
+            if (error) {
+                console.error('Error updating task details:', error);
+                saveDetailsBtn.disabled = false;
+                window.alert(`Could not save task details: ${error.message || error.code || 'Unknown Supabase error'}`);
+                return;
+            }
+
+            currentTasksData = currentTasksData.map(task => task.id === item.id
+                ? { ...task, due_date: dueDate, priority: updatedPriority }
+                : task);
+            renderTasks(currentTasksData);
+            const updatedRow = Array.from(taskList.children).find(row => row.dataset.taskId === String(item.id));
+            if (updatedRow) {
+                updatedRow.classList.add('expanded');
+                updatedRow.querySelector('.slide-toggle-btn').textContent = 'Hide Details';
+            }
         });
 
         taskList.appendChild(li);

@@ -267,9 +267,56 @@ h1 {
 }
 
 li.expanded .task-details {
-    max-height: 120px;
+    max-height: 320px;
     padding: 8px 10px;
     margin-top: 8px;
+}
+
+.task-details-editor {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    align-items: end;
+    gap: 8px;
+    margin-top: 10px;
+}
+
+.task-details-editor label {
+    display: grid;
+    gap: 4px;
+    min-width: 0;
+    font-size: 11px;
+    font-weight: 600;
+}
+
+.task-details-editor input,
+.task-details-editor select {
+    width: 100%;
+    min-width: 0;
+    height: 34px;
+    padding: 4px 6px;
+    border: 1px solid #cbd5dc;
+    border-radius: 5px;
+    background: #fff;
+    color: #333;
+    font: inherit;
+}
+
+.save-details-btn {
+    grid-column: 2;
+    justify-self: end;
+    padding: 6px 10px;
+    border: 0;
+    border-radius: 5px;
+    background: #2879a8;
+    color: #fff;
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.save-details-btn:disabled {
+    cursor: wait;
+    opacity: 0.7;
 }
 
 /* Main task row layout */
@@ -375,6 +422,13 @@ li.expanded .task-details {
 .dark-mode .task-details {
     background: #2a343a;
     color: #ccd5da;
+}
+
+.dark-mode .task-details-editor input,
+.dark-mode .task-details-editor select {
+    border-color: #48545c;
+    background: #242c31;
+    color: #edf2f5;
 }
 
 .dark-mode .priority-high {
