@@ -1,9 +1,3 @@
-// --- REPLACE THESE WITH YOUR OWN SUPABASE CREDENTIALS ---
-const SUPABASE_URL = 'https://uygnaxmdlsridrxztrho.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InV5Z25heG1kbHNyaWRyeHp0cmhvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTEyODI2MTksImV4cCI6MjEwNjg1ODYxOX0.iWqJxnyvTD__v28fVRiO6JV89EBCtn-6OQwZUbe15tM';
-
-const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
 const taskInput = document.getElementById('task-input');
 const dueDateInput = document.getElementById('due-date-input');
 const prioritySelect = document.getElementById('priority-select');
@@ -55,6 +49,7 @@ async function fetchTasks() {
     const { data, error } = await supabaseClient
         .from('tasks')
         .select('*')
+        .is('deleted_at', null)
         .order('created_at', { ascending: false });
 
     if (error) {
@@ -244,7 +239,7 @@ async function toggleTask(event, id, currentStatus) {
     }
 }
 
-// 4. Delete task
+// 4. Move task to recently deleted
 async function deleteTask(event, id) {
     event.stopPropagation();
     const previousTasks = currentTasksData;
@@ -253,14 +248,14 @@ async function deleteTask(event, id) {
 
     const { error } = await supabaseClient
         .from('tasks')
-        .delete()
+        .update({ deleted_at: new Date().toISOString() })
         .eq('id', id);
 
     if (error) {
-        console.error('Error deleting task:', error);
+        console.error('Error moving task to recently deleted:', error);
         currentTasksData = previousTasks;
         renderTasks(currentTasksData);
-        window.alert(`Could not delete this task: ${error.message || error.code || 'Unknown Supabase error'}`);
+        window.alert(`Could not move this task to Recently Deleted: ${error.message || error.code || 'Unknown Supabase error'}`);
     }
 }
 

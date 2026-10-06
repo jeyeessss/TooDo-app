@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Recently Deleted | To-Do</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+    <main class="app-container">
+        <header class="app-header">
+            <h1>Recently Deleted</h1>
+            <button id="theme-toggle" type="button" aria-label="Switch to dark mode" title="Switch to dark mode">&#9790;</button>
+        </header>
+        <a class="back-to-tasks" href="index.html">&larr; Back to My Tasks</a>
+        <p id="trash-status" class="trash-status" aria-live="polite">Loading deleted tasks...</p>
+        <ul id="trash-list" class="trash-list"></ul>
+    </main>
+    <script src="supabase-client.js"></script>
+    <script src="trash.js"></script>
+</body>
+</html>

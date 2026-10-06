@@ -168,6 +168,80 @@ h1 {
     margin-bottom: 15px;
 }
 
+.trash-link,
+.back-to-tasks {
+    color: #2879a8;
+    font-size: 13px;
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.trash-link {
+    padding: 6px 10px;
+    border: 1px solid #cbd5dc;
+    border-radius: 6px;
+}
+
+.back-to-tasks {
+    display: inline-block;
+    margin-bottom: 16px;
+}
+
+.trash-status {
+    margin-bottom: 10px;
+    color: #66727a;
+    font-size: 13px;
+}
+
+.trash-list {
+    display: grid;
+    gap: 8px;
+    list-style: none;
+}
+
+.trash-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 12px;
+    border: 1px solid #e2e7ea;
+    border-radius: 6px;
+    background: #fafafa;
+}
+
+.trash-item-details {
+    display: grid;
+    gap: 4px;
+    min-width: 0;
+}
+
+.trash-task-title {
+    overflow-wrap: anywhere;
+}
+
+.trash-item-details span {
+    color: #66727a;
+    font-size: 12px;
+}
+
+.restore-task-btn {
+    flex: 0 0 auto;
+    padding: 8px 12px;
+    border: 0;
+    border-radius: 5px;
+    background: #2879a8;
+    color: #fff;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.restore-task-btn:disabled {
+    cursor: wait;
+    opacity: 0.7;
+}
+
 #enable-notifications-btn {
     padding: 6px 10px;
     border: 1px solid #c8e6c9;
@@ -333,6 +407,15 @@ li.expanded .task-details {
 }
 
 @media (max-width: 480px) {
+    .trash-item {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .restore-task-btn {
+        min-height: 40px;
+    }
+
     .task-details-editor {
         grid-template-columns: minmax(0, 1fr);
     }
@@ -447,6 +530,25 @@ li.expanded .task-details {
 .dark-mode .task-details {
     background: #2a343a;
     color: #ccd5da;
+}
+
+.dark-mode .trash-link {
+    border-color: #48545c;
+    color: #83c5e8;
+}
+
+.dark-mode .back-to-tasks {
+    color: #83c5e8;
+}
+
+.dark-mode .trash-status,
+.dark-mode .trash-item-details span {
+    color: #aebbc2;
+}
+
+.dark-mode .trash-item {
+    border-color: #343e44;
+    background: #232b30;
 }
 
 .dark-mode .task-details-editor input,
