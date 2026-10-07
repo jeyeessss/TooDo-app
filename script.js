@@ -401,7 +401,7 @@ function renderTasks(tasks) {
     taskProgress.setAttribute('aria-valuenow', completionPercent);
     taskProgressFill.style.width = `${completionPercent}%`;
 
-    let tasksToRender = [...tasks];
+    let tasksToRender = tasks.filter(task => !task.is_completed);
 
     // Sorting
     tasksToRender.sort((a, b) => {

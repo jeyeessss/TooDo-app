@@ -240,7 +240,7 @@ h1 {
 
 .collection-nav {
     display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: repeat(4, minmax(0, 1fr));
     gap: 4px;
     margin-bottom: 12px;
     padding: 4px;
@@ -393,6 +393,12 @@ h1 {
     color: #825b12;
 }
 
+.completed-link {
+    border-color: #bdd5e3;
+    background: #e8f2f7;
+    color: #285e78;
+}
+
 .recently-deleted-link {
     border-color: #e3b5b5;
     background: #fbe9e9;
@@ -425,6 +431,39 @@ h1 {
     border: 1px solid #e2e7ea;
     border-radius: 6px;
     background: #fafafa;
+}
+
+.completed-task-list {
+    display: grid;
+    gap: 8px;
+    list-style: none;
+}
+
+.completed-task-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 12px;
+    border: 1px solid #e2e7ea;
+    border-radius: 6px;
+    background: #fafafa;
+}
+
+.completed-task-details {
+    display: grid;
+    gap: 4px;
+    min-width: 0;
+}
+
+.completed-task-title {
+    overflow-wrap: anywhere;
+    text-decoration: line-through;
+}
+
+.completed-task-date {
+    color: #69767d;
+    font-size: 11px;
 }
 
 .trash-item-details {
@@ -672,6 +711,11 @@ li.expanded .task-details {
         flex-direction: column;
     }
 
+    .completed-task-item {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
     .restore-task-btn {
         min-height: 40px;
     }
@@ -846,6 +890,12 @@ li.expanded .task-details {
     color: #f0ce82;
 }
 
+.dark-mode .completed-link {
+    border-color: #3f6375;
+    background: #253842;
+    color: #a7d8ef;
+}
+
 .dark-mode .recently-deleted-link {
     border-color: #754148;
     background: #3b272b;
@@ -910,6 +960,19 @@ li.expanded .task-details {
 .dark-mode .trash-item {
     border-color: #343e44;
     background: #232b30;
+}
+
+.dark-mode .completed-task-item {
+    border-color: #343e44;
+    background: #232b30;
+}
+
+.dark-mode .completed-task-title {
+    color: #b6c4bd;
+}
+
+.dark-mode .completed-task-date {
+    color: #aebbc2;
 }
 
 .dark-mode .delete-forever-btn {

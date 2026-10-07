@@ -1,15 +1,17 @@
-const SHELL_CACHE = 'todo-shell-v2';
+const SHELL_CACHE = 'todo-shell-v3';
 const RUNTIME_CACHE = 'todo-runtime-v1';
 const APP_ASSETS = [
     './',
     './index.html',
     './trash.html',
+    './completed.html',
     './collections.html',
     './collections.html?view=inbox',
     './collections.html?view=someday',
     './style.css',
     './script.js',
     './trash.js',
+    './completed.js',
     './collections.js',
     './task-storage.js',
     './supabase-client.js',
