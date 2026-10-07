@@ -55,18 +55,14 @@
         </div>
 
         <div class="task-toolbar">
-            <button id="enable-notifications-btn" type="button">Enable notifications</button>
             <button id="sort-priority-btn" style="padding: 6px 12px; background-color: #e67e22; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 13px;">Sort: High to Low </button>
-            <a class="trash-link brain-dump-link" href="collections.html?view=inbox">Brain dump</a>
-            <a class="trash-link someday-link" href="collections.html?view=someday">Someday / Maybe</a>
-            <a class="trash-link completed-link" href="completed.html">Completed</a>
-            <a class="trash-link recently-deleted-link" href="trash.html">Recently deleted</a>
         </div>
 
         <ul id="task-list">
             <!--Task Items-->
         </ul>
      </div>
+    <div id="bottom-nav-root"></div>
 
     <script type="module">
         import * as chrono from 'https://cdn.jsdelivr.net/npm/chrono-node@2.8.0/+esm';
@@ -74,6 +70,7 @@
     </script>
     <script src="supabase-client.js"></script>
     <script src="task-storage.js"></script>
+    <script src="bottom-nav.js"></script>
     <script src="script.js"></script>
 </body>
 </html>

@@ -190,29 +190,37 @@ function checkDueDateReminders() {
 
 function updateNotificationsButton() {
     if (!('Notification' in window)) {
-        enableNotificationsBtn.textContent = 'Notifications unavailable';
-        enableNotificationsBtn.disabled = true;
+        enableNotificationsBtn.title = 'Browser notifications unavailable; view reminders';
         return;
     }
 
     if (Notification.permission === 'granted') {
-        enableNotificationsBtn.textContent = 'Notifications enabled';
-        enableNotificationsBtn.disabled = true;
+        enableNotificationsBtn.title = 'View reminders';
     } else if (Notification.permission === 'denied') {
-        enableNotificationsBtn.textContent = 'Allow in browser settings';
-        enableNotificationsBtn.disabled = true;
+        enableNotificationsBtn.title = 'Notifications blocked in browser settings';
+    } else {
+        enableNotificationsBtn.title = 'Enable reminders';
     }
 }
 
 if (enableNotificationsBtn) {
     enableNotificationsBtn.addEventListener('click', async () => {
+        notificationArea.scrollIntoView({ behavior: 'smooth', block: 'start' });
         if (!('Notification' in window)) {
             updateNotificationsButton();
             return;
         }
 
+        if (Notification.permission === 'granted') {
+            checkDueDateReminders();
+            return;
+        }
+        if (Notification.permission === 'denied') return;
+
         try {
-            await Notification.requestPermission();
+            if (Notification.permission === 'default') {
+                await Notification.requestPermission();
+            }
             updateNotificationsButton();
             checkDueDateReminders();
         } catch (error) {

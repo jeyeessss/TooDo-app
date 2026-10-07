@@ -16,13 +16,6 @@
             <button id="theme-toggle" type="button" aria-label="Switch to dark mode" title="Switch to dark mode">&#9790;</button>
         </header>
 
-        <nav class="collection-nav" aria-label="Task collections">
-            <a href="index.html">My Tasks</a>
-            <a href="collections.html?view=inbox" data-view="inbox">Brain Dump</a>
-            <a href="collections.html?view=someday" data-view="someday">Someday / Maybe</a>
-            <a href="completed.html">Completed</a>
-        </nav>
-
         <p id="sync-status" class="sync-status" role="status" aria-live="polite">Loading saved items...</p>
 
         <form id="collection-form" class="collection-form">
@@ -35,8 +28,10 @@
         <ul id="collection-list" class="collection-list"></ul>
     </main>
 
+    <div id="bottom-nav-root"></div>
     <script src="supabase-client.js"></script>
     <script src="task-storage.js"></script>
+    <script src="bottom-nav.js"></script>
     <script src="collections.js"></script>
 </body>
 </html>

@@ -15,13 +15,14 @@
             <h1>Recently Deleted</h1>
             <button id="theme-toggle" type="button" aria-label="Switch to dark mode" title="Switch to dark mode">&#9790;</button>
         </header>
-        <a class="back-to-tasks" href="index.html">&larr; Back to My Tasks</a>
         <p id="sync-status" class="sync-status" role="status" aria-live="polite">Loading saved tasks...</p>
         <p id="trash-status" class="trash-status" aria-live="polite">Loading deleted tasks...</p>
         <ul id="trash-list" class="trash-list"></ul>
     </main>
+    <div id="bottom-nav-root"></div>
     <script src="supabase-client.js"></script>
     <script src="task-storage.js"></script>
+    <script src="bottom-nav.js"></script>
     <script src="trash.js"></script>
 </body>
 </html>

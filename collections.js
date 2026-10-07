@@ -7,7 +7,7 @@ const collectionStatus = document.getElementById('collection-status');
 const collectionList = document.getElementById('collection-list');
 const syncStatus = document.getElementById('sync-status');
 const themeToggleBtn = document.getElementById('theme-toggle');
-const view = new URLSearchParams(window.location.search).get('view') === 'someday' ? 'someday' : 'inbox';
+const view = 'inbox';
 
 function updateThemeToggle() {
     const isDarkMode = document.documentElement.classList.contains('dark-mode');
@@ -36,12 +36,11 @@ themeToggleBtn.addEventListener('click', () => {
     updateThemeToggle();
 });
 
-collectionTitle.textContent = view === 'inbox' ? 'Brain Dump Inbox' : 'Someday / Maybe';
-collectionInputLabel.textContent = view === 'inbox' ? 'Brain dump' : 'Someday idea';
-collectionInput.placeholder = view === 'inbox' ? 'Get it out of your head...' : 'An idea for later...';
-collectionInput.rows = view === 'inbox' ? 4 : 2;
-collectionSubmit.textContent = view === 'inbox' ? 'Save dump' : 'Add idea';
-document.querySelector(`[data-view="${view}"]`).setAttribute('aria-current', 'page');
+collectionTitle.textContent = 'Brain Dump';
+collectionInputLabel.textContent = 'Brain dump';
+collectionInput.placeholder = 'Get it out of your head...';
+collectionInput.rows = 4;
+collectionSubmit.textContent = 'Save dump';
 
 function updateSyncStatus(error = null) {
     if (!todoTaskStore.isStorageAvailable()) {
@@ -90,8 +89,13 @@ async function syncCollectionChanges() {
 
     const result = await todoTaskStore.syncPending(supabaseClient);
     try {
-        await todoTaskStore.fetchRemote(supabaseClient);
-        updateSyncStatus(result.error);
+        const tasks = await todoTaskStore.fetchRemote(supabaseClient);
+        const legacySomedayTasks = tasks.filter(task => task.task_bucket === 'someday' && !task.deleted_at);
+        legacySomedayTasks.forEach(task => todoTaskStore.updateTask({ ...task, task_bucket: 'inbox' }));
+        const migrationResult = legacySomedayTasks.length
+            ? await todoTaskStore.syncPending(supabaseClient)
+            : null;
+        updateSyncStatus(result.error || migrationResult?.error);
         renderCollection();
     } catch (error) {
         console.error('Could not sync collection changes:', error);
@@ -121,14 +125,17 @@ function editDump(task, card) {
 }
 
 function renderCollection() {
+    const cachedTasks = todoTaskStore.getTasks();
+    cachedTasks
+        .filter(task => task.task_bucket === 'someday' && !task.deleted_at)
+        .forEach(task => todoTaskStore.updateTask({ ...task, task_bucket: 'inbox' }));
+
     const entries = todoTaskStore.getTasks()
-        .filter(task => task.task_bucket === view && !task.deleted_at && !task._pendingDeleteForever)
+        .filter(task => (task.task_bucket === 'inbox' || task.task_bucket === 'someday') && !task.deleted_at && !task._pendingDeleteForever)
         .sort((first, second) => new Date(second.created_at || second.started_at) - new Date(first.created_at || first.started_at));
 
     collectionList.replaceChildren();
-    collectionStatus.textContent = entries.length === 0
-        ? view === 'inbox' ? 'Your inbox is clear.' : 'Nothing saved for someday yet.'
-        : '';
+    collectionStatus.textContent = entries.length === 0 ? 'Your Brain Dump is clear.' : '';
 
     entries.forEach(task => {
         const item = document.createElement('li');
@@ -141,35 +148,25 @@ function renderCollection() {
 
         const metadata = document.createElement('span');
         metadata.className = 'collection-entry-date';
-        metadata.textContent = view === 'inbox'
-            ? `Captured ${formatDate(task.created_at || task.started_at)}`
-            : `Saved ${formatDate(task.created_at || task.started_at)}`;
+        metadata.textContent = `Captured ${formatDate(task.created_at || task.started_at)}`;
         item.appendChild(metadata);
 
-        if (view === 'inbox') {
-            const editDetails = document.createElement('details');
-            editDetails.className = 'collection-edit';
-            const summary = document.createElement('summary');
-            summary.textContent = 'Edit dump';
-            const editArea = document.createElement('textarea');
-            editArea.className = 'collection-edit-input';
-            editArea.rows = 4;
-            editArea.value = task.task;
-            editArea.setAttribute('aria-label', 'Edit brain dump');
-            const saveEdit = makeAction('Save edit', 'collection-secondary-btn', () => editDump(task, item));
-            editDetails.append(summary, editArea, saveEdit);
-            item.appendChild(editDetails);
-        }
+        const editDetails = document.createElement('details');
+        editDetails.className = 'collection-edit';
+        const summary = document.createElement('summary');
+        summary.textContent = 'Edit dump';
+        const editArea = document.createElement('textarea');
+        editArea.className = 'collection-edit-input';
+        editArea.rows = 4;
+        editArea.value = task.task;
+        editArea.setAttribute('aria-label', 'Edit brain dump');
+        const saveEdit = makeAction('Save edit', 'collection-secondary-btn', () => editDump(task, item));
+        editDetails.append(summary, editArea, saveEdit);
+        item.appendChild(editDetails);
 
         const actions = document.createElement('div');
         actions.className = 'collection-actions';
-        if (view === 'inbox') {
-            actions.appendChild(makeAction('Make task', 'collection-primary-btn', () => moveTask(task, 'active', true)));
-            actions.appendChild(makeAction('Move to Someday', 'collection-secondary-btn', () => moveTask(task, 'someday')));
-        } else {
-            actions.appendChild(makeAction('Move to tasks', 'collection-primary-btn', () => moveTask(task, 'active', true)));
-            actions.appendChild(makeAction('Move to Brain Dump', 'collection-secondary-btn', () => moveTask(task, 'inbox')));
-        }
+        actions.appendChild(makeAction('Make task', 'collection-primary-btn', () => moveTask(task, 'active', true)));
 
         actions.appendChild(makeAction('Delete', 'collection-delete-btn', () => {
             todoTaskStore.updateTask({ ...task, deleted_at: new Date().toISOString() });
@@ -188,7 +185,7 @@ collectionForm.addEventListener('submit', event => {
     const now = new Date().toISOString();
     todoTaskStore.addTask({
         task: text,
-        task_bucket: view,
+        task_bucket: 'inbox',
         is_completed: false,
         priority: 'medium',
         started_at: now,
