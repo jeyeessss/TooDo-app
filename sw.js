@@ -1,4 +1,4 @@
-const SHELL_CACHE = 'todo-shell-v5';
+const SHELL_CACHE = 'todo-shell-v7';
 const RUNTIME_CACHE = 'todo-runtime-v1';
 const APP_ASSETS = [
     './',
