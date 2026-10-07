@@ -49,8 +49,13 @@ function updateSyncStatus(error = null) {
     } else if (!navigator.onLine) {
         syncStatus.textContent = 'Offline · changes saved on this device';
     } else if (error) {
-        syncStatus.textContent = 'Saved on this device · sync will retry';
+        const detail = error.message || error.code || 'Unknown Supabase error';
+        syncStatus.textContent = `Sync failed: ${detail}`;
+        syncStatus.title = error.details || error.hint || detail;
+        syncStatus.dataset.syncError = 'true';
     } else {
+        syncStatus.title = '';
+        delete syncStatus.dataset.syncError;
         const pendingCount = todoTaskStore.pendingCount();
         syncStatus.textContent = pendingCount
             ? `${pendingCount} change${pendingCount === 1 ? '' : 's'} waiting to sync`

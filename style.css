@@ -86,6 +86,12 @@ h1 {
     color: #68757d;
     font-size: 11px;
     text-align: right;
+    overflow-wrap: anywhere;
+}
+
+.sync-status[data-sync-error="true"] {
+    color: #a52b32;
+    text-align: left;
 }
 
 #theme-toggle {
@@ -757,6 +763,10 @@ li.expanded .task-details {
 
 .dark-mode .sync-status {
     color: #aebbc2;
+}
+
+.dark-mode .sync-status[data-sync-error="true"] {
+    color: #ff9da4;
 }
 
 .dark-mode .task-progress {
