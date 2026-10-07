@@ -302,7 +302,7 @@ async function addTask() {
 
 // 3. Toggle completion
 async function toggleTask(event, id, currentStatus) {
-    event.stopPropagation(); 
+    event?.stopPropagation?.();
     
     const existingTask = currentTasksData.find(task => task.id === id);
     const previousStatus = existingTask ? existingTask.is_completed : currentStatus;
@@ -322,7 +322,7 @@ async function toggleTask(event, id, currentStatus) {
 
 // 4. Move task to recently deleted
 async function deleteTask(event, id) {
-    event.stopPropagation();
+    event?.stopPropagation?.();
     const task = currentTasksData.find(candidate => String(candidate.id) === String(id));
     if (!task) return;
     todoTaskStore.updateTask({ ...task, deleted_at: new Date().toISOString() });
@@ -436,6 +436,7 @@ function renderTasks(tasks) {
 
                 <div style="display: flex; align-items: center; gap: 6px;">
                     <span class="priority-badge priority-${priority}">${priority}</span>
+                    <button class="complete-task-btn" type="button" aria-label="Complete ${item.task}" title="Complete task">&#10003;</button>
                     <button class="slide-toggle-btn" style="background-color: #f1f2f6; border: none; border-radius: 6px; cursor: pointer; font-size: 11px; font-weight: 600; padding: 4px 8px; color: #555;">See Details</button>
                     <button class="delete-btn" style="background: none; border: none; cursor: pointer; color: #e74c3c; font-weight: bold; font-size: 14px;">❌</button>
                 </div>
@@ -461,12 +462,56 @@ function renderTasks(tasks) {
         li.querySelector('.task-full-title-text').textContent = item.task;
         li.querySelector('.edit-task-title').value = item.task;
 
-        // Toggle completion from the task row, leaving its controls independent.
-        const mainRow = li.querySelector('.task-main-row');
-        mainRow.addEventListener('click', (e) => {
-            if (e.target.closest('button')) return;
+        let touchStart = null;
+        let ignoreNextCardClick = false;
+
+        li.addEventListener('click', e => {
+            if (ignoreNextCardClick) {
+                ignoreNextCardClick = false;
+                return;
+            }
+            if (e.target.closest('button, input, select, textarea, summary, a')) return;
             toggleTask(e, item.id, item.is_completed);
         });
+
+        li.addEventListener('pointerdown', e => {
+            if (e.pointerType !== 'touch' || e.target.closest('button, input, select, textarea, summary, a')) return;
+            touchStart = { x: e.clientX, y: e.clientY };
+            try {
+                li.setPointerCapture(e.pointerId);
+            } catch {
+                touchStart = { x: e.clientX, y: e.clientY };
+            }
+        });
+
+        li.addEventListener('pointerup', e => {
+            if (!touchStart || e.pointerType !== 'touch') return;
+            const deltaX = e.clientX - touchStart.x;
+            const deltaY = e.clientY - touchStart.y;
+            touchStart = null;
+            if (Math.abs(deltaX) < 80 || Math.abs(deltaX) < Math.abs(deltaY) * 1.2) return;
+
+            e.preventDefault();
+            ignoreNextCardClick = true;
+            li.classList.add(deltaX > 0 ? 'swipe-complete' : 'swipe-delete');
+            window.setTimeout(() => {
+                if (deltaX > 0) {
+                    toggleTask(null, item.id, item.is_completed);
+                } else {
+                    deleteTask(null, item.id);
+                }
+            }, 140);
+            window.setTimeout(() => {
+                ignoreNextCardClick = false;
+            }, 600);
+        });
+
+        li.addEventListener('pointercancel', () => {
+            touchStart = null;
+        });
+
+        const completeBtn = li.querySelector('.complete-task-btn');
+        completeBtn.addEventListener('click', e => toggleTask(e, item.id, item.is_completed));
 
         // Delete button
         const deleteBtn = li.querySelector('.delete-btn');

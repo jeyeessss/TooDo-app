@@ -553,6 +553,7 @@ h1 {
 }
 
 #task-list li {
+    position: relative;
     padding: 12px 14px;
     background-color: #fafafa;
     border: 1px solid #eee;
@@ -562,6 +563,52 @@ h1 {
     justify-content: space-between;
     align-items: center;
     font-size: 15px;
+    touch-action: pan-y;
+    transition: transform 180ms ease, background-color 180ms ease, border-color 180ms ease;
+}
+
+.complete-task-btn {
+    display: inline-grid;
+    flex: 0 0 30px;
+    place-items: center;
+    width: 30px;
+    height: 30px;
+    border: 1px solid #a9d2b6;
+    border-radius: 50%;
+    background: #e7f3eb;
+    color: #286344;
+    cursor: pointer;
+    font-size: 17px;
+    font-weight: 700;
+    opacity: 0;
+    pointer-events: none;
+    transform: scale(0.85);
+    transition: opacity 150ms ease, transform 150ms ease;
+}
+
+#task-list li:hover .complete-task-btn,
+#task-list li:focus-within .complete-task-btn {
+    opacity: 1;
+    pointer-events: auto;
+    transform: scale(1);
+}
+
+#task-list li.swipe-complete {
+    transform: translateX(24px);
+    border-color: #a9d2b6;
+    background: #e7f3eb;
+}
+
+#task-list li.swipe-delete {
+    transform: translateX(-24px);
+    border-color: #e3b5b5;
+    background: #fbe9e9;
+}
+
+@media (hover: none), (pointer: coarse) {
+    .complete-task-btn {
+        display: none;
+    }
 }
 
 /* Priority Dropdown Styling */
@@ -853,6 +900,22 @@ li.expanded .task-details {
     border-color: #343e44;
     background-color: #232b30;
     color: #e1e7eb;
+}
+
+.dark-mode .complete-task-btn {
+    border-color: #42694e;
+    background: #263c2d;
+    color: #b6e1c1;
+}
+
+.dark-mode #task-list li.swipe-complete {
+    border-color: #42694e;
+    background: #263c2d;
+}
+
+.dark-mode #task-list li.swipe-delete {
+    border-color: #754148;
+    background: #3b272b;
 }
 
 .dark-mode #task-list li.completed {
